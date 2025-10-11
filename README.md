@@ -251,3 +251,64 @@ The Ad Module is a microservice integrated with the main platform:
 | Stakeholder review completed             | ✅      |
 
 ---
+erDiagram
+    USERS {
+        int user_id PK
+        string name
+        string email
+        string role
+    }
+
+    ADS {
+        int ad_id PK
+        int user_id FK
+        string title
+        string description
+        string image_url
+        string target_url
+        string category
+        date start_date
+        date end_date
+        string status
+        float budget
+    }
+
+    AD_ANALYTICS {
+        int analytics_id PK
+        int ad_id FK
+        int views
+        int clicks
+        float ctr
+        datetime timestamp
+    }
+
+    AD_PAYMENTS {
+        int payment_id PK
+        int ad_id FK
+        int user_id FK
+        float amount
+        string payment_method
+        datetime payment_date
+        string status
+    }
+
+    AD_TARGETS {
+        int target_id PK
+        int ad_id FK
+        string location
+        string interest
+    }
+
+    AD_PLACEMENTS {
+        int placement_id PK
+        int ad_id FK
+        string placement_type
+        string page_section
+    }
+
+    USERS ||--o{ ADS : "creates"
+    ADS ||--o{ AD_ANALYTICS : "logs"
+    ADS ||--o{ AD_PAYMENTS : "paid via"
+    ADS ||--o{ AD_TARGETS : "targeted by"
+    ADS ||--o{ AD_PLACEMENTS : "placed at"
+---
