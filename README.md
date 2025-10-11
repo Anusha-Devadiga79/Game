@@ -242,68 +242,47 @@ flowchart TD
 
 #### ER Diagram
 
-```mermaid
-erDiagram
-    USERS {
-        int user_id PK
-        string name
-        string email
-        string role
-    }
++-------------------+           +-------------------+
+|      USERS        |           |        ADS        |
++-------------------+           +-------------------+
+| user_id PK        |<---------o| ad_id PK          |
+| name              | creates   | user_id FK        |
+| email             |           | title             |
+| role              |           | description       |
++-------------------+           | image_url         |
+                                | target_url        |
+                                | category          |
+                                | start_date        |
+                                | end_date          |
+                                | status            |
+                                | budget            |
+                                +-------------------+
+                                        |
+                +-----------------------+--------------------+
+                |                       |                    |
+                v                       v                    v
+        +----------------+       +----------------+   +----------------+
+        | AD_ANALYTICS   |       | AD_PAYMENTS    |   | AD_TARGETS     |
+        +----------------+       +----------------+   +----------------+
+        | analytics_id PK|       | payment_id PK  |   | target_id PK   |
+        | ad_id FK       |       | ad_id FK       |   | ad_id FK       |
+        | views          |       | user_id FK     |   | location       |
+        | clicks         |       | amount         |   | interest       |
+        | ctr            |       | payment_method |   +----------------+
+        | timestamp      |       | payment_date   |
+        +----------------+       | status         |
+                                 +----------------+
+                                         |
+                                         v
+                                 +----------------+
+                                 | AD_PLACEMENTS  |
+                                 +----------------+
+                                 | placement_id PK|
+                                 | ad_id FK       |
+                                 | placement_type |
+                                 | page_section   |
+                                 +----------------+
 
-    ADS {
-        int ad_id PK
-        int user_id FK
-        string title
-        string description
-        string image_url
-        string target_url
-        string category
-        date start_date
-        date end_date
-        string status
-        float budget
-    }
-
-    AD_ANALYTICS {
-        int analytics_id PK
-        int ad_id FK
-        int views
-        int clicks
-        float ctr
-        datetime timestamp
-    }
-
-    AD_PAYMENTS {
-        int payment_id PK
-        int ad_id FK
-        int user_id FK
-        float amount
-        string payment_method
-        datetime payment_date
-        string status
-    }
-
-    AD_TARGETS {
-        int target_id PK
-        int ad_id FK
-        string location
-        string interest
-    }
-
-    AD_PLACEMENTS {
-        int placement_id PK
-        int ad_id FK
-        string placement_type
-        string page_section
-    }
-
-    USERS ||--o{ ADS : "creates"
-    ADS ||--o{ AD_ANALYTICS : "logs"
-    ADS ||--o{ AD_PAYMENTS : "paid via"
-    ADS ||--o{ AD_TARGETS : "targeted by"
-    ADS ||--o{ AD_PLACEMENTS : "placed at"
-```
 
 ---
 
