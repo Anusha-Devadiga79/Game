@@ -1,4 +1,3 @@
-````markdown
 # **Software Requirements Specification (SRS) – Ad Module**
 
 **Version:** 1.2  
