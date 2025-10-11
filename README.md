@@ -1,7 +1,8 @@
+````markdown
 # **Software Requirements Specification (SRS) – Ad Module**
 
-**Version:** 1.2
-**Date:** 2025-10-11
+**Version:** 1.2  
+**Date:** 2025-10-11  
 **Author:** Anusha Devadiga
 
 ---
@@ -14,14 +15,14 @@ The Ad Module enables businesses, recruiters, and community members to create, m
 
 ### 1.2 Scope
 
-* Frontend ad creation and submission (Angular 16)
-* Advertiser dashboard for ad management
-* Admin dashboard for moderation, placement, and analytics
-* Dynamic ad display system across website sections
-* Analytics and reporting
-* Payment integration (optional)
-* Targeting and scheduling
-* Notifications for ad status updates
+* Frontend ad creation and submission (Angular 16)  
+* Advertiser dashboard for ad management  
+* Admin dashboard for moderation, placement, and analytics  
+* Dynamic ad display system across website sections  
+* Analytics and reporting  
+* Payment integration (optional)  
+* Targeting and scheduling  
+* Notifications for ad status updates  
 
 **Module Architecture:** Standalone microservice integrated into the main Angular 16 application, using Express as the backend and MSSQL as the database.
 
@@ -43,9 +44,9 @@ The Ad Module enables businesses, recruiters, and community members to create, m
 
 The Ad Module is a microservice integrated with the main platform:
 
-* Interacts with existing authentication and billing systems
-* Shares data with user and wallet tables
-* Sends notifications via the existing notification system
+* Interacts with existing authentication and billing systems  
+* Shares data with user and wallet tables  
+* Sends notifications via the existing notification system  
 
 ### 2.2 User Characteristics
 
@@ -74,10 +75,10 @@ The Ad Module is a microservice integrated with the main platform:
 
 ### 2.5 Dependencies
 
-* Authentication Module for user verification
-* Notification Service for alerts
-* Billing / Payment Module for processing paid campaigns
-* Existing wallet tables for payment history
+* Authentication Module for user verification  
+* Notification Service for alerts  
+* Billing / Payment Module for processing paid campaigns  
+* Existing wallet tables for payment history  
 
 ---
 
@@ -85,55 +86,55 @@ The Ad Module is a microservice integrated with the main platform:
 
 ### 3.1 Ad Creation & Submission
 
-* Form fields: Title, Description, Image/Banner, Target URL, Category, Start/End Date, Budget/Plan
-* Preview option
-* Save as Draft
-* Validation: required fields, URL, image type/size
+* Form fields: Title, Description, Image/Banner, Target URL, Category, Start/End Date, Budget/Plan  
+* Preview option  
+* Save as Draft  
+* Validation: required fields, URL, image type/size  
 
 ### 3.2 Advertiser Dashboard
 
-* View, Edit, Pause/Resume/Delete ads
-* Status tracking: Pending, Approved, Active, Expired, Rejected
-* Analytics: Views, Clicks, CTR
+* View, Edit, Pause/Resume/Delete ads  
+* Status tracking: Pending, Approved, Active, Expired, Rejected  
+* Analytics: Views, Clicks, CTR  
 
 ### 3.3 Admin Panel
 
-* Filter and view ads by status, category, advertiser, date
-* Approve/Reject/Delete ads
-* Assign ad placements (homepage, sidebar, footer)
-* Monitor flagged/reported ads
-* Suspend advertiser accounts
-* Edit ad details if required
+* Filter and view ads by status, category, advertiser, date  
+* Approve/Reject/Delete ads  
+* Assign ad placements (homepage, sidebar, footer)  
+* Monitor flagged/reported ads  
+* Suspend advertiser accounts  
+* Edit ad details if required  
 
 ### 3.4 Ad Display System
 
-* Display ads based on placement, category relevance, and priority
-* Types: Banner, Sidebar, Inline, Popup/Modal (optional)
-* Responsive and click-tracking enabled
+* Display ads based on placement, category relevance, and priority  
+* Types: Banner, Sidebar, Inline, Popup/Modal (optional)  
+* Responsive and click-tracking enabled  
 
 ### 3.5 Analytics & Reporting
 
-* Metrics: Total Impressions, Clicks, CTR
-* Daily/Weekly/Monthly charts
-* Exportable reports (CSV/PDF)
-* Top-performing ads dashboard
+* Metrics: Total Impressions, Clicks, CTR  
+* Daily/Weekly/Monthly charts  
+* Exportable reports (CSV/PDF)  
+* Top-performing ads dashboard  
 
 ### 3.6 Payment & Plans (Optional)
 
-* Pricing Plans: Basic, Premium, Sponsored
-* Payment gateway integration
-* Auto-calculated cost based on duration and placement
-* Payment history and invoice generation
+* Pricing Plans: Basic, Premium, Sponsored  
+* Payment gateway integration  
+* Auto-calculated cost based on duration and placement  
+* Payment history and invoice generation  
 
 ### 3.7 Targeting & Scheduling
 
-* Targeting: Location, User Interests
-* Scheduling: Start/End Dates, Priority delivery for premium ads
+* Targeting: Location, User Interests  
+* Scheduling: Start/End Dates, Priority delivery for premium ads  
 
 ### 3.8 Notifications & Alerts
 
-* Email/In-app notifications: approval, rejection, expiry, low budget
-* Reminders before ad expiry
+* Email/In-app notifications: approval, rejection, expiry, low budget  
+* Reminders before ad expiry  
 
 ---
 
@@ -164,11 +165,19 @@ The Ad Module is a microservice integrated with the main platform:
 
 ### 5.2 Data Flow
 
-1. Advertiser submits ad → saved in `ads` table
-2. Approved ads → displayed dynamically → impressions/clicks logged in `ad_analytics`
-3. Paid ads → payment recorded in `ad_payments` → update ad priority
-4. Analytics dashboard pulls data from `ad_analytics`
-5. Notifications triggered based on ad events
+```mermaid
+flowchart TD
+    A[Advertiser submits Ad] --> B[Ads Table]
+    B --> C{Approved?}
+    C -->|Yes| D[Display Ad dynamically]
+    C -->|No| E[Save as Draft / Pending]
+    D --> F[Log Impressions & Clicks in Ad_Analytics]
+    D --> G[Trigger Notifications]
+    F --> H[Analytics Dashboard]
+    G --> H
+    B --> I[Payment Recorded in Ad_Payments for Paid Ads]
+    I --> D
+````
 
 ---
 
@@ -232,25 +241,9 @@ The Ad Module is a microservice integrated with the main platform:
 
 ### 8.3 Mockups / Diagrams
 
-* ER Diagram (Users, Ads, Payments, Analytics)
-* Data Flow Diagram: Ad submission → Display → Analytics → Notifications
+#### ER Diagram
 
----
-
-## **9. Review and Approval Checklist**
-
-| Item                                     | Status |
-| ---------------------------------------- | ------ |
-| Functional requirements clearly defined  | ✅      |
-| Non-functional requirements documented   | ✅      |
-| Database tables and ER diagrams included | ✅      |
-| API endpoints listed with examples       | ✅      |
-| Payment handling described               | ✅      |
-| Traceability matrix included             | ✅      |
-| Version control maintained               | ✅      |
-| Stakeholder review completed             | ✅      |
-
----
+```mermaid
 erDiagram
     USERS {
         int user_id PK
@@ -311,4 +304,21 @@ erDiagram
     ADS ||--o{ AD_PAYMENTS : "paid via"
     ADS ||--o{ AD_TARGETS : "targeted by"
     ADS ||--o{ AD_PLACEMENTS : "placed at"
+```
+
 ---
+
+## **9. Review and Approval Checklist**
+
+| Item                                     | Status |
+| ---------------------------------------- | ------ |
+| Functional requirements clearly defined  | ✅      |
+| Non-functional requirements documented   | ✅      |
+| Database tables and ER diagrams included | ✅      |
+| API endpoints listed with examples       | ✅      |
+| Payment handling described               | ✅      |
+| Traceability matrix included             | ✅      |
+| Version control maintained               | ✅      |
+| Stakeholder review completed             | ✅      |
+
+```
