@@ -241,62 +241,28 @@ flowchart TD
 ### 8.3 ER Diagram (Mermaid)
 
 ```mermaid
-erDiagram
-    USERS {
-        int user_id PK
-        string name
-        string email
-        string role
-    }
-    ADS {
-        int ad_id PK
-        int user_id FK
-        string title
-        string description
-        string image_url
-        string target_url
-        string category
-        date start_date
-        date end_date
-        string status
-        float budget
-    }
-    AD_ANALYTICS {
-        int analytics_id PK
-        int ad_id FK
-        int views
-        int clicks
-        float ctr
-        datetime timestamp
-    }
-    AD_PAYMENTS {
-        int payment_id PK
-        int ad_id FK
-        int user_id FK
-        float amount
-        string payment_method
-        datetime payment_date
-        string status
-    }
-    AD_TARGETS {
-        int target_id PK
-        int ad_id FK
-        string location
-        string interest
-    }
-    AD_PLACEMENTS {
-        int placement_id PK
-        int ad_id FK
-        string placement_type
-        string page_section
-    }
+flowchart TD
+    %% Entities
+    USERS[<b>USERS</b>\nPK: user_id\nname\nemail\nrole] 
+    ADS[<b>ADS</b>\nPK: ad_id\nFK: user_id\ntitle\ndescription\nimage_url\ntarget_url\ncategory\nstart_date\nend_date\nstatus\nbudget]
+    AD_ANALYTICS[<b>AD_ANALYTICS</b>\nPK: analytics_id\nFK: ad_id\nviews\nclicks\nctr\ntimestamp]
+    AD_PAYMENTS[<b>AD_PAYMENTS</b>\nPK: payment_id\nFK: ad_id, user_id\namount\npayment_method\npayment_date\nstatus]
+    AD_TARGETS[<b>AD_TARGETS</b>\nPK: target_id\nFK: ad_id\nlocation\ninterest]
+    AD_PLACEMENTS[<b>AD_PLACEMENTS</b>\nPK: placement_id\nFK: ad_id\nplacement_type\npage_section]
 
-    USERS ||--o{ ADS : "creates"
-    ADS ||--o{ AD_ANALYTICS : "logs"
-    ADS ||--o{ AD_PAYMENTS : "paid via"
-    ADS ||--o{ AD_TARGETS : "targets"
-    ADS ||--o{ AD_PLACEMENTS : "placed at"
+    %% Relationships (diamonds)
+    R1{"creates"} 
+    R2{"logs"}
+    R3{"paid via"}
+    R4{"targets"}
+    R5{"placed at"}
 
+    %% Connections
+    USERS --> R1 --> ADS
+    ADS --> R2 --> AD_ANALYTICS
+    ADS --> R3 --> AD_PAYMENTS
+    ADS --> R4 --> AD_TARGETS
+    ADS --> R5 --> AD_PLACEMENTS
 ```
 
 ---
