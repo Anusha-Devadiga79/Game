@@ -303,8 +303,6 @@ erDiagram
     ADS --> AD_PAYMENTS
     ADS --> AD_TARGETS
     ADS --> AD_PLACEMENTS
-
-
 ```
 
 ---
