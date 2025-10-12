@@ -243,59 +243,67 @@ flowchart TD
 ```mermaid
 erDiagram
     USERS {
-        int id PK
+        int user_id PK
         string name
         string email
         string role
     }
     ADS {
-        int id PK
+        int ad_id PK
         int user_id FK
         string title
-        string desc
-        string img_url
+        string description
+        string image_url
         string target_url
         string category
-        date start
-        date end
+        date start_date
+        date end_date
         string status
         float budget
     }
     AD_ANALYTICS {
-        int id PK
+        int analytics_id PK
         int ad_id FK
         int views
         int clicks
         float ctr
-        datetime ts
+        datetime timestamp
     }
     AD_PAYMENTS {
-        int id PK
+        int payment_id PK
         int ad_id FK
         int user_id FK
-        float amt
-        string method
-        datetime date
+        float amount
+        string payment_method
+        datetime payment_date
         string status
     }
     AD_TARGETS {
-        int id PK
+        int target_id PK
         int ad_id FK
-        string loc
+        string location
         string interest
     }
     AD_PLACEMENTS {
-        int id PK
+        int placement_id PK
         int ad_id FK
-        string type
-        string section
+        string placement_type
+        string page_section
     }
 
+    %% Group relationships to reduce diagram height
     USERS ||--o{ ADS : "creates"
     ADS ||--o{ AD_ANALYTICS : "logs"
     ADS ||--o{ AD_PAYMENTS : "paid via"
-    ADS ||--o{ AD_TARGETS : "targeted by"
+    ADS ||--o{ AD_TARGETS : "targets"
     ADS ||--o{ AD_PLACEMENTS : "placed at"
+
+    %% Arrange side by side
+    ADS --> AD_ANALYTICS
+    ADS --> AD_PAYMENTS
+    ADS --> AD_TARGETS
+    ADS --> AD_PLACEMENTS
+
 
 ```
 
