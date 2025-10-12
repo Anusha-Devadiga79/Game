@@ -291,18 +291,12 @@ erDiagram
         string page_section
     }
 
-    %% Group relationships to reduce diagram height
     USERS ||--o{ ADS : "creates"
     ADS ||--o{ AD_ANALYTICS : "logs"
     ADS ||--o{ AD_PAYMENTS : "paid via"
     ADS ||--o{ AD_TARGETS : "targets"
     ADS ||--o{ AD_PLACEMENTS : "placed at"
 
-    %% Arrange side by side
-    ADS --> AD_ANALYTICS
-    ADS --> AD_PAYMENTS
-    ADS --> AD_TARGETS
-    ADS --> AD_PLACEMENTS
 ```
 
 ---
