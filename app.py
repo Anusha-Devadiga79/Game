@@ -4,11 +4,23 @@ import gspread
 import os, json, base64
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-import face_recognition
-import cv2
+
+try:
+    import face_recognition
+    import cv2
+    FACE_RECOGNITION_ENABLED = True
+except ImportError:
+    FACE_RECOGNITION_ENABLED = False
+    print("Face recognition not available. Install opencv-python and face-recognition to enable.")
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SESSION_SECRET', 'your-secret-key-here')
+
+if 'SESSION_SECRET' not in os.environ:
+    print("WARNING: SESSION_SECRET not set. Using insecure fallback. Set SESSION_SECRET environment variable for production.")
+    app.secret_key = 'dev-secret-key-change-in-production'
+else:
+    app.secret_key = os.environ['SESSION_SECRET']
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 SCOPES = [
@@ -32,12 +44,18 @@ except Exception as e:
     SHEETS_ENABLED = False
     print(f"Google Sheets initialization failed: {e}")
 
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'bcca')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'bcca')
+
+if ADMIN_USERNAME == 'bcca' and ADMIN_PASSWORD == 'bcca':
+    print("WARNING: Using default credentials (bcca/bcca). Set ADMIN_USERNAME and ADMIN_PASSWORD environment variables for security.")
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '')
         password = request.form.get('password', '')
-        if username == 'bcca' and password == 'bcca':
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['user'] = 'admin'
             return redirect('/dashboard')
         else:
@@ -67,7 +85,7 @@ def dashboard():
         data_files = [f for f in os.listdir('data') if f.endswith('.png')]
         student_count = len(data_files)
     
-    return render_template('dashboard.html', msg=msg, student_count=student_count, sheets_enabled=SHEETS_ENABLED)
+    return render_template('dashboard.html', msg=msg, student_count=student_count, sheets_enabled=SHEETS_ENABLED, face_recognition_enabled=FACE_RECOGNITION_ENABLED)
 
 @app.route('/view_data')
 def view_data():
@@ -137,8 +155,11 @@ def run_attendance():
     if 'user' not in session:
         return redirect('/')
     
+    if not FACE_RECOGNITION_ENABLED:
+        return redirect(url_for('dashboard', msg="Face recognition is not available. Install opencv-python and face-recognition first."))
+    
     try:
-        subprocess.Popen(["python", "chat.py", "--manual"])
+        subprocess.Popen(["uv", "run", "python", "chat.py", "--manual"])
         return redirect(url_for('dashboard', msg="Manual attendance session started! It will run for 2 minutes."))
     except Exception as e:
         return redirect(url_for('dashboard', msg=f"Error starting attendance: {str(e)}"))
@@ -194,12 +215,13 @@ def add_student():
             with open(local_path, "wb") as f:
                 f.write(image_bytes)
             
-            image = face_recognition.load_image_file(local_path)
-            face_encodings = face_recognition.face_encodings(image)
-            
-            if len(face_encodings) == 0:
-                os.remove(local_path)
-                return render_template('add_student.html', error="No face detected in the photo. Please try again.")
+            if FACE_RECOGNITION_ENABLED:
+                image = face_recognition.load_image_file(local_path)
+                face_encodings = face_recognition.face_encodings(image)
+                
+                if len(face_encodings) == 0:
+                    os.remove(local_path)
+                    return render_template('add_student.html', error="No face detected in the photo. Please try again.")
             
             if SHEETS_ENABLED:
                 try:

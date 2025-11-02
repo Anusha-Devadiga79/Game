@@ -17,3 +17,5 @@ venv/
 .venv/
 *.log
 .DS_Store
+cookies.txt
+*.cookie
