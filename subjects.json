@@ -1,0 +1,14 @@
+[
+  {
+    "code": "CS101",
+    "name": "Data Structures"
+  },
+  {
+    "code": "CS102",
+    "name": "Database Management"
+  },
+  {
+    "code": "CS103",
+    "name": "Web Development"
+  }
+]

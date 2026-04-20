@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taking Attendance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: white; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; text-align: center; }
+        .status-bar { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .status-bar h2 { margin-bottom: 10px; }
+        .timer { font-size: 48px; font-weight: bold; color: #4facfe; }
+        .video-container { position: relative; display: inline-block; margin: 20px 0; }
+        #videoFeed { max-width: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .controls { margin-top: 20px; }
+        .control-btn { padding: 12px 30px; margin: 0 10px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .control-btn:hover { background: #5568d3; }
+        .control-btn.danger { background: #dc3545; }
+        .control-btn.danger:hover { background: #c82333; }
+        .info-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .info-box p { margin: 5px 0; }
+        .marked-count { font-size: 24px; color: #28a745; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📸 Taking Attendance</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="status-bar">
+            <h2>Attendance Session Active</h2>
+            <div class="timer" id="timer">02:00</div>
+            <p>Time Remaining</p>
+            <div class="marked-count" id="markedCount">0 students marked</div>
+        </div>
+        
+        <div class="video-container">
+            <img id="videoFeed" src="/admin/video_feed?subject={{ subject }}" alt="Video Feed">
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn danger" onclick="stopAttendance()">⏹ Stop Attendance</button>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>Instructions:</strong></p>
+            <p>• Students should look at the camera for face recognition</p>
+            <p>• Green box indicates successful recognition</p>
+            <p>• Red box indicates unknown face</p>
+            <p>• Attendance will automatically stop after 2 minutes</p>
+            <p>• Data is saved to JSON, Excel, and Google Sheets</p>
+        </div>
+    </div>
+    
+    <script>
+        let timeLeft = 120; // 2 minutes
+        const timerDisplay = document.getElementById('timer');
+        let sessionEnded = false;
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                if (!sessionEnded) {
+                    sessionEnded = true;
+                    stopAttendance();
+                }
+            }
+        }, 1000);
+        
+        function stopAttendance() {
+            if (sessionEnded) return;
+            sessionEnded = true;
+            
+            // Stop the video feed
+            document.getElementById('videoFeed').src = '';
+            
+            // Call stop endpoint
+            fetch('/admin/stop_attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                   // alert(`Attendance completed!\n\nMarked Present: ${data.marked}\nTotal Students: ${data.total}\n\nData saved to:\n- JSON file\n- Excel sheet\n- Google Sheets (if enabled)`);
+                    window.location.href = '/admin/dashboard?msg=Attendance completed successfully';
+                } else {
+                    //alert('Attendance session ended');
+                    window.location.href = '/admin/dashboard';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                //alert('Attendance session ended. Data has been saved.');
+                window.location.href = '/admin/dashboard';
+            });
+        }
+        
+        // Update marked count periodically (optional enhancement)
+        setInterval(() => {
+            // You could add an API endpoint to get current count
+            // For now, this is just a placeholder
+        }, 5000);
+    </script>
+</body>
+</html>

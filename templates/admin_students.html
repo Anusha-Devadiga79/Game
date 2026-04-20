@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Students</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .student-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; transition: transform 0.3s; }
+        .student-card:hover { transform: translateY(-5px); }
+        .student-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #667eea; }
+        .student-card h3 { color: #333; margin-bottom: 10px; }
+        .student-card p { color: #666; margin: 5px 0; font-size: 14px; }
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>👥 All Students</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        {% if students %}
+        <div class="students-grid">
+            {% for student in students %}
+            <div class="student-card">
+                <img src="{{ student.photo }}" alt="{{ student.name }}" class="student-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23667eea%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22white%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2240%22%3E{{ student.name[0] }}%3C/text%3E%3C/svg%3E'">
+                <h3>{{ student.name }}</h3>
+                <p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+                <p><strong>Class:</strong> {{ student.class }}</p>
+                <p><strong>Semester:</strong> {{ student.semester }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No students found</h2>
+            <p>Add students to get started</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Attendance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .filter-bar { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filter-bar select { padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .attendance-cards { display: grid; gap: 20px; }
+        .date-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .date-card h3 { color: #667eea; margin-bottom: 15px; }
+        .stats { display: flex; gap: 20px; margin-bottom: 15px; }
+        .stat { padding: 10px 20px; border-radius: 8px; }
+        .stat.present { background: #d4edda; color: #155724; }
+        .stat.absent { background: #f8d7da; color: #721c24; }
+        .student-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+        .student-item { padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📊 View Attendance</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="filter-bar">
+            <label for="subjectFilter"><strong>Filter by Subject:</strong></label>
+            <select id="subjectFilter" onchange="window.location.href='/admin/view_attendance?subject=' + this.value">
+                <option value="">All Subjects</option>
+                {% for subject in subjects %}
+                <option value="{{ subject.code }}" {% if subject.code == selected_subject %}selected{% endif %}>
+                    {{ subject.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        {% if attendance_data %}
+        <div class="attendance-cards">
+            {% for date, data in attendance_data.items()|sort(reverse=True) %}
+            <div class="date-card">
+                <h3>{{ date }} - {{ data.subject if data.subject else 'General' }}</h3>
+                <div class="stats">
+                    <div class="stat present">
+                        <strong>Present:</strong> {{ data.present|length }}
+                    </div>
+                    <div class="stat absent">
+                        <strong>Absent:</strong> {{ data.absent|length }}
+                    </div>
+                </div>
+                
+                <details>
+                    <summary style="cursor: pointer; font-weight: 500; margin-top: 10px;">View Details</summary>
+                    <div style="margin-top: 15px;">
+                        <h4 style="color: #28a745; margin-bottom: 10px;">Present Students:</h4>
+                        <div class="student-list">
+                            {% for student in data.present %}
+                            <div class="student-item">✓ {{ student }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <h4 style="color: #dc3545; margin: 15px 0 10px;">Absent Students:</h4>
+                        <div class="student-list">
+                            {% for student in data.absent %}
+                            <div class="student-item">✗ {{ student }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </details>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background: white; padding: 60px; text-align: center; border-radius: 12px;">
+            <h2>No attendance records found</h2>
+            <p>Start taking attendance to see records here</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

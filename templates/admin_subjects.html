@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .add-btn { padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; }
+        .add-btn:hover { background: #218838; }
+        .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .subject-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.3s; }
+        .subject-card:hover { transform: translateY(-5px); }
+        .subject-card h3 { color: #667eea; margin-bottom: 10px; }
+        .subject-card p { color: #666; }
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; }
+        .empty-state h2 { color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📚 Subjects</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h2>All Subjects</h2>
+            <a href="/admin/add_subject" class="add-btn">➕ Add New Subject</a>
+        </div>
+        
+        {% if subjects %}
+        <div class="subjects-grid">
+            {% for subject in subjects %}
+            <div class="subject-card">
+                <h3>{{ subject.name }}</h3>
+                <p><strong>Code:</strong> {{ subject.code }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No subjects added yet</h2>
+            <p>Click "Add New Subject" to get started</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

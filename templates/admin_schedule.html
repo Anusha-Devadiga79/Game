@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Attendance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 600px; margin: 50px auto; padding: 0 20px; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .submit-btn:hover { opacity: 0.9; }
+        .current-schedule { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .current-schedule h3 { color: #0066cc; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>⏰ Schedule Attendance</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="current-schedule">
+                <h3>Current Schedule</h3>
+                <p><strong>Time:</strong> {{ current_time }}</p>
+                <p><strong>Subject:</strong> {{ current_subject if current_subject else 'Not set' }}</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="time">Select Time</label>
+                    <input type="time" id="time" name="time" value="{{ current_time }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Select Subject</label>
+                    <select id="subject" name="subject">
+                        <option value="">General Attendance</option>
+                        {% for subj in subjects %}
+                        <option value="{{ subj.code }}" {% if subj.code == current_subject %}selected{% endif %}>
+                            {{ subj.name }} ({{ subj.code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn">Set Schedule</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

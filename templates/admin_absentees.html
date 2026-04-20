@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Absentees</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .date-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+        .date-header h2 { color: #667eea; }
+        .absentees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .absentee-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-left: 4px solid #dc3545; }
+        .absentee-card h3 { color: #333; margin-bottom: 10px; }
+        .absentee-card p { color: #666; margin: 5px 0; }
+        .empty-state { background: white; padding: 60px; text-align: center; border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>❌ Today's Absentees</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="date-header">
+            <h2>{{ date }}</h2>
+            <p>Total Absentees: {{ absentees|length }}</p>
+        </div>
+        
+        {% if absentees %}
+        <div class="absentees-grid">
+            {% for student in absentees %}
+            <div class="absentee-card">
+                <h3>{{ student.name }}</h3>
+                <p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+                <p><strong>Username:</strong> {{ student.username }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>🎉 No absentees today!</h2>
+            <p>All students are present</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

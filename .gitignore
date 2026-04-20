@@ -19,3 +19,13 @@ venv/
 .DS_Store
 cookies.txt
 *.cookie
+credentials.json
+student_photos/
+students_data.json
+attendance_logs/
+.local/
+.vscode/
+FINAL_SUMMARY.txt
+IMPLEMENTATION_SUMMARY.md
+TEST_ATTENDANCE.md
+ATTENDANCE_STORAGE_FIX.md
