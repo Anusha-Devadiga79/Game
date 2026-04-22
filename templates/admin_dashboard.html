@@ -350,6 +350,21 @@
     
     <div id="chartTooltip"></div>
 
+    <!-- Scheduled Attendance Modal -->
+    <div id="scheduleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:35px; border-radius:16px; width:90%; max-width:420px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size:48px; margin-bottom:15px;">⏰</div>
+            <h2 style="color:#333; margin-bottom:10px;">Scheduled Attendance</h2>
+            <p style="color:#666; margin-bottom:5px;">It's time for attendance!</p>
+            <p id="scheduleSubjectText" style="color:#667eea; font-weight:600; margin-bottom:20px;"></p>
+            <p style="color:#888; font-size:14px; margin-bottom:20px;">Auto-starting in <strong id="scheduleCountdown" style="color:#dc3545; font-size:20px;">10</strong> seconds...</p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button onclick="startScheduledNow()" style="padding:12px 28px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">▶ Start Now</button>
+                <button onclick="dismissScheduled()" style="padding:12px 28px; background:#6c757d; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer;">✕ Dismiss</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Tab switching
         const tabBtns = document.querySelectorAll('.tab-btn');
@@ -364,6 +379,70 @@
                 document.getElementById(tabId).classList.add('active');
             });
         });
+
+        // ── Scheduled attendance polling ──
+        let countdownInterval = null;
+        let scheduledSubject = '';
+
+        function pollScheduled() {
+            fetch('/api/check_scheduled')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.triggered) {
+                        showScheduleModal(data.subject, data.triggered_at);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function showScheduleModal(subject, time) {
+            scheduledSubject = subject;
+            const modal = document.getElementById('scheduleModal');
+            const subjectText = document.getElementById('scheduleSubjectText');
+            subjectText.textContent = subject ? `Subject: ${subject}` : 'General Attendance';
+            modal.style.display = 'flex';
+
+            // Request browser notification permission
+            if (Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            if (Notification.permission === 'granted') {
+                new Notification('⏰ Attendance Time!', {
+                    body: subject ? `Time for ${subject} attendance` : 'Time for attendance',
+                    icon: '/static/favicon.ico'
+                });
+            }
+
+            // Countdown
+            let count = 10;
+            document.getElementById('scheduleCountdown').textContent = count;
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                count--;
+                document.getElementById('scheduleCountdown').textContent = count;
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    startScheduledNow();
+                }
+            }, 1000);
+        }
+
+        function startScheduledNow() {
+            clearInterval(countdownInterval);
+            document.getElementById('scheduleModal').style.display = 'none';
+            fetch('/api/dismiss_scheduled', { method: 'POST' });
+            window.location.href = '/admin/start_attendance?subject=' + encodeURIComponent(scheduledSubject);
+        }
+
+        function dismissScheduled() {
+            clearInterval(countdownInterval);
+            document.getElementById('scheduleModal').style.display = 'none';
+            fetch('/api/dismiss_scheduled', { method: 'POST' });
+        }
+
+        // Poll every 10 seconds
+        pollScheduled();
+        setInterval(pollScheduled, 10000);
 
         // ── Chart globals ──
         const barCanvas  = document.getElementById('attendanceChart');

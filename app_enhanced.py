@@ -167,8 +167,11 @@ def update_excel_attendance(date, subject, present_students, all_students):
 # Background Scheduler
 # ============================
 
+# Global flag for scheduled attendance trigger
+scheduled_trigger = {'active': False, 'subject': '', 'triggered_at': None}
+
 def schedule_attendance():
-    """Background thread to run scheduled attendance"""
+    """Background thread - sets flag when scheduled time hits"""
     while True:
         try:
             if os.path.exists('attendance_time.json'):
@@ -182,8 +185,11 @@ def schedule_attendance():
                             year=now.year, month=now.month, day=now.day
                         )
                         if now >= schedule_time and now < schedule_time + timedelta(minutes=1):
-                            print(f"Running scheduled attendance for {subject}...")
-                            subprocess.Popen(["python", "attendance_runner.py", subject], shell=False)
+                            if not scheduled_trigger['active']:
+                                print(f"Scheduled attendance triggered for {subject}...")
+                                scheduled_trigger['active'] = True
+                                scheduled_trigger['subject'] = subject
+                                scheduled_trigger['triggered_at'] = now.strftime('%H:%M')
                             time.sleep(60)
         except Exception as e:
             print(f"Scheduler error: {e}")
@@ -909,6 +915,32 @@ def student_photo(username):
     if os.path.exists(photo_path):
         return send_file(photo_path, mimetype='image/png')
     return "Photo not found", 404
+
+@app.route('/api/marked_count')
+def api_marked_count():
+    """Return current marked count for live update"""
+    if session.get('user_type') != 'admin':
+        return jsonify({'count': 0})
+    return jsonify({'count': len(attendance_session.get('marked', set()))})
+
+@app.route('/api/check_scheduled')
+def api_check_scheduled():
+    """Polling endpoint - returns whether scheduled attendance is triggered"""
+    if session.get('user_type') != 'admin':
+        return jsonify({'triggered': False})
+    return jsonify({
+        'triggered': scheduled_trigger['active'],
+        'subject': scheduled_trigger['subject'],
+        'triggered_at': scheduled_trigger['triggered_at']
+    })
+
+@app.route('/api/dismiss_scheduled', methods=['POST'])
+def api_dismiss_scheduled():
+    """Dismiss the scheduled trigger"""
+    scheduled_trigger['active'] = False
+    scheduled_trigger['subject'] = ''
+    scheduled_trigger['triggered_at'] = None
+    return jsonify({'success': True})
 
 @app.route('/api/attendance_stats')
 def api_attendance_stats():
