@@ -57,7 +57,7 @@
                     {% for record in attendance %}
                     <tr>
                         <td>{{ record.date }}</td>
-                        <td>{{ record.subject }}</td>
+                        <td>{{ record.subject if record.subject else 'General' }}</td>
                         <td>
                             <span class="status-badge {{ record.status.lower() }}">
                                 {{ record.status }}

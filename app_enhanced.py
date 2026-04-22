@@ -271,10 +271,8 @@ def admin_dashboard():
 
 @app.route('/admin/students')
 def admin_students():
-    """View all students"""
     if session.get('user_type') != 'admin':
         return redirect('/')
-    
     students = load_students()
     student_list = []
     for username, data in students.items():
@@ -286,8 +284,62 @@ def admin_students():
             'semester': data.get('semester', ''),
             'photo': f"/student_photo/{username}"
         })
-    
     return render_template('admin_students.html', students=student_list)
+
+@app.route('/admin/student_profile/<username>')
+def admin_student_profile(username):
+    if session.get('user_type') != 'admin':
+        return redirect('/')
+    students = load_students()
+    student = students.get(username)
+    if not student:
+        return redirect(url_for('admin_students'))
+    attendance_data = get_attendance_data()
+    subjects = load_subjects()
+    present_count = 0
+    total_days = len(attendance_data)
+    history = []
+    subject_map = {}
+    for date, data in sorted(attendance_data.items(), reverse=True):
+        status = 'Present' if username in data.get('present', []) else 'Absent'
+        if status == 'Present':
+            present_count += 1
+        subj = data.get('subject', '') or 'General'
+        history.append({'date': date, 'subject': subj, 'status': status})
+        if subj not in subject_map:
+            subject_map[subj] = {'present': 0, 'total': 0, 'name': subj}
+        subject_map[subj]['total'] += 1
+        if status == 'Present':
+            subject_map[subj]['present'] += 1
+    overall_pct = round(present_count / total_days * 100, 1) if total_days > 0 else 0
+
+    # Build subject stats — match by code first, fallback to raw key as name
+    subject_code_to_name = {s['code']: s['name'] for s in subjects}
+    subject_stats = []
+    for key, sm in subject_map.items():
+        name = subject_code_to_name.get(key, key)  # use subject name if found, else use key as-is
+        pct = round(sm['present'] / sm['total'] * 100, 1) if sm['total'] > 0 else 0
+        subject_stats.append({'name': name, 'pct': pct})
+    return render_template('admin_student_profile.html',
+                         username=username, student=student,
+                         present_count=present_count,
+                         absent_count=total_days - present_count,
+                         total_days=total_days,
+                         overall_pct=overall_pct,
+                         subject_stats=subject_stats,
+                         history=history)
+
+@app.route('/admin/reset_password/<username>', methods=['POST'])
+def admin_reset_password(username):
+    if session.get('user_type') != 'admin':
+        return redirect('/')
+    new_password = request.form.get('new_password', '')
+    if new_password:
+        students = load_students()
+        if username in students:
+            students[username]['password'] = new_password
+            save_students(students)
+    return redirect(url_for('admin_student_profile', username=username))
 
 @app.route('/admin/add_student', methods=['GET', 'POST'])
 def admin_add_student():
@@ -641,6 +693,59 @@ def save_attendance_data(date_str, subject, marked_students, all_students):
         print("⊙ Google Sheets not enabled")
     
     print(f"{'='*60}\n")
+    
+    # 4. Check for low attendance and send email alerts
+    try:
+        send_low_attendance_alerts(all_students)
+    except Exception as e:
+        print(f"⊙ Email alert skipped: {e}")
+
+def send_low_attendance_alerts(all_students):
+    """Send email to students with attendance below 75%"""
+    import smtplib
+    from email.mime.text import MIMEText
+
+    smtp_host = os.environ.get('SMTP_HOST', '')
+    smtp_port = int(os.environ.get('SMTP_PORT', 587))
+    smtp_user = os.environ.get('SMTP_USER', '')
+    smtp_pass = os.environ.get('SMTP_PASS', '')
+
+    if not smtp_host or not smtp_user:
+        return  # Email not configured, skip silently
+
+    attendance_data = get_attendance_data()
+    total_days = len(attendance_data)
+    if total_days == 0:
+        return
+
+    for username, student in all_students.items():
+        email = student.get('email', '')
+        if not email:
+            continue
+        present = sum(1 for d in attendance_data.values() if username in d.get('present', []))
+        pct = round(present / total_days * 100, 1)
+        if pct < 75:
+            try:
+                body = f"""Dear {student['name']},
+
+Your current attendance is {pct}%, which is below the required 75%.
+
+Present: {present} / {total_days} days
+
+Please attend classes regularly to avoid shortage.
+
+- Smart Attendance System"""
+                msg = MIMEText(body)
+                msg['Subject'] = f"⚠️ Low Attendance Alert - {pct}%"
+                msg['From'] = smtp_user
+                msg['To'] = email
+                with smtplib.SMTP(smtp_host, smtp_port) as server:
+                    server.starttls()
+                    server.login(smtp_user, smtp_pass)
+                    server.send_message(msg)
+                print(f"✓ Email sent to {student['name']} ({email})")
+            except Exception as e:
+                print(f"✗ Email failed for {student['name']}: {e}")
 
 def update_google_sheets_attendance(date_str, subject, marked_students, all_students):
     """Update Google Sheets with attendance"""
@@ -850,30 +955,43 @@ def admin_shortage():
 
 @app.route('/student/dashboard')
 def student_dashboard():
-    """Student dashboard"""
     if session.get('user_type') != 'student':
         return redirect('/')
-    
     username = session.get('user')
     students = load_students()
     student = students.get(username, {})
-    
-    # Calculate attendance statistics
     attendance_data = get_attendance_data()
     present_count = 0
     total_days = len(attendance_data)
-    
+    attendance_dates = {}
     for date, data in attendance_data.items():
         if username in data.get('present', []):
             present_count += 1
-    
-    percentage = (present_count / total_days * 100) if total_days > 0 else 0
-    
+            attendance_dates[date] = 'Present'
+        else:
+            attendance_dates[date] = 'Absent'
+    percentage = round((present_count / total_days * 100), 2) if total_days > 0 else 0
     return render_template('student_dashboard.html',
                          student=student,
                          present_count=present_count,
                          total_days=total_days,
-                         percentage=round(percentage, 2))
+                         percentage=percentage,
+                         attendance_dates=attendance_dates)
+
+@app.route('/student/change_password', methods=['POST'])
+def student_change_password():
+    if session.get('user_type') != 'student':
+        return redirect('/')
+    username = session.get('user')
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    students = load_students()
+    if username in students:
+        if students[username].get('password') == current_password:
+            students[username]['password'] = new_password
+            save_students(students)
+            return redirect(url_for('student_dashboard'))
+    return redirect(url_for('student_dashboard'))
 
 @app.route('/student/attendance')
 def student_attendance():

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+
+        /* Profile header */
+        .profile-header { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; gap: 30px; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .profile-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea; flex-shrink: 0; }
+        .profile-info h2 { font-size: 24px; color: #333; margin-bottom: 10px; }
+        .profile-info p { color: #666; margin: 5px 0; font-size: 14px; }
+        .reset-btn { margin-top: 15px; padding: 9px 20px; background: #ffc107; color: #333; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .reset-btn:hover { background: #e0a800; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card h4 { color: #888; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+        .stat-card .num { font-size: 32px; font-weight: bold; color: #667eea; }
+        .pct.good { color: #28a745; }
+        .pct.warning { color: #ffc107; }
+        .pct.danger { color: #dc3545; }
+        .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+
+        /* Subject breakdown */
+        .section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 25px; }
+        .section h3 { margin-bottom: 18px; color: #333; }
+        .subject-row { display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .subject-row:last-child { border-bottom: none; }
+        .subject-name { flex: 1; font-weight: 500; color: #333; }
+        .subject-bar { flex: 2; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; }
+        .subject-bar-fill { height: 100%; border-radius: 5px; }
+        .subject-pct { width: 50px; text-align: right; font-weight: 600; font-size: 14px; }
+
+        /* Attendance history table */
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #667eea; color: white; padding: 12px 15px; text-align: left; font-weight: 500; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        tr:hover { background: #f8f9fa; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge.present { background: #d4edda; color: #155724; }
+        .badge.absent  { background: #f8d7da; color: #721c24; }
+
+        /* Reset password modal */
+        #resetModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:30px; border-radius:12px; width:90%; max-width:380px; }
+        .modal-box h3 { margin-bottom:20px; color:#333; }
+        .modal-box input { width:100%; padding:11px; border:2px solid #e0e0e0; border-radius:8px; font-size:14px; margin-bottom:15px; }
+        .modal-box input:focus { outline:none; border-color:#667eea; }
+        .modal-btns { display:flex; gap:10px; }
+        .modal-btn { flex:1; padding:11px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+        .modal-btn.save { background:#667eea; color:white; }
+        .modal-btn.cancel { background:#e0e0e0; color:#333; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>👤 Student Profile</h1>
+        <a href="/admin/students">← Back to Students</a>
+    </div>
+
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <img src="/student_photo/{{ username }}" alt="{{ student.name }}" class="profile-img"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22130%22%3E%3Crect fill=%22%23667eea%22 width=%22130%22 height=%22130%22/%3E%3Ctext fill=%22white%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2252%22%3E{{ student.name[0] }}%3C/text%3E%3C/svg%3E'">
+            <div class="profile-info">
+                <h2>{{ student.name }}</h2>
+                <p><strong>Username:</strong> {{ username }}</p>
+                <p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+                <p><strong>Class:</strong> {{ student.class }}</p>
+                <p><strong>Semester:</strong> {{ student.semester }}</p>
+                <button class="reset-btn" onclick="document.getElementById('resetModal').style.display='flex'">🔑 Reset Password</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Overall Attendance</h4>
+                <div class="num pct {% if overall_pct >= 75 %}good{% elif overall_pct >= 60 %}warning{% else %}danger{% endif %}">{{ overall_pct }}%</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:{{ overall_pct }}%"></div></div>
+            </div>
+            <div class="stat-card">
+                <h4>Days Present</h4>
+                <div class="num">{{ present_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Days Absent</h4>
+                <div class="num" style="color:#dc3545;">{{ absent_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Total Days</h4>
+                <div class="num">{{ total_days }}</div>
+            </div>
+        </div>
+
+        <!-- Subject-wise breakdown -->
+        {% if subject_stats %}
+        <div class="section">
+            <h3>📚 Subject-wise Attendance</h3>
+            {% for subj in subject_stats %}
+            <div class="subject-row">
+                <div class="subject-name">{{ subj.name }}</div>
+                <div class="subject-bar">
+                    <div class="subject-bar-fill" style="width:{{ subj.pct }}%; background:{% if subj.pct >= 75 %}#28a745{% elif subj.pct >= 60 %}#ffc107{% else %}#dc3545{% endif %};"></div>
+                </div>
+                <div class="subject-pct" style="color:{% if subj.pct >= 75 %}#28a745{% elif subj.pct >= 60 %}#ffc107{% else %}#dc3545{% endif %};">{{ subj.pct }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Attendance History -->
+        <div class="section">
+            <h3>📋 Attendance History</h3>
+            {% if history %}
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Subject</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for record in history %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.subject or 'General' }}</td>
+                        <td><span class="badge {{ record.status.lower() }}">{{ record.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color:#888; text-align:center; padding:20px;">No attendance records yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetModal">
+        <div class="modal-box">
+            <h3>🔑 Reset Password for {{ student.name }}</h3>
+            <form method="POST" action="/admin/reset_password/{{ username }}" onsubmit="return validateReset()">
+                <div id="resetError" style="color:#dc3545; font-size:13px; margin-bottom:10px; display:none;"></div>
+                <input type="password" name="new_password" id="resetNewPwd" placeholder="New password" required maxlength="10">
+                <input type="password" id="resetConfirmPwd" placeholder="Confirm new password" required maxlength="10">
+                <div class="modal-btns">
+                    <button type="submit" class="modal-btn save">Save</button>
+                    <button type="button" class="modal-btn cancel" onclick="document.getElementById('resetModal').style.display='none'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const resetNewPwd    = document.getElementById('resetNewPwd');
+        const resetConfirmPwd = document.getElementById('resetConfirmPwd');
+        const resetError     = document.getElementById('resetError');
+
+        function showResetError(msg) {
+            resetError.style.display = 'block';
+            resetError.textContent = msg;
+        }
+
+        [resetNewPwd, resetConfirmPwd].forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value.length === 10) {
+                    showResetError('Maximum 10 characters allowed');
+                } else {
+                    resetError.style.display = 'none';
+                }
+            });
+        });
+
+        function validateReset() {
+            const np = resetNewPwd.value;
+            const cp = resetConfirmPwd.value;
+            if (np.length > 10 || cp.length > 10) {
+                showResetError('Password must not exceed 10 characters');
+                return false;
+            }
+            if (np !== cp) {
+                showResetError('Passwords do not match');
+                return false;
+            }
+            resetError.style.display = 'none';
+            return true;
+        }
+    </script>
+</body>
+</html>
