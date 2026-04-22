@@ -734,10 +734,50 @@ def admin_view_attendance():
     attendance_data = get_attendance_data(subject)
     subjects = load_subjects()
     
+    google_sheet_url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/edit" if SHEETS_ENABLED else None
+    
     return render_template('admin_view_attendance.html',
                          attendance_data=attendance_data,
                          subjects=subjects,
-                         selected_subject=subject)
+                         selected_subject=subject,
+                         google_sheet_url=google_sheet_url)
+
+@app.route('/admin/export_attendance_excel')
+def admin_export_attendance_excel():
+    """Export attendance to Excel and download"""
+    if session.get('user_type') != 'admin':
+        return redirect('/')
+    
+    subject = request.args.get('subject', '')
+    attendance_data = get_attendance_data(subject)
+    students = load_students()
+    
+    try:
+        # Build dataframe
+        all_dates = sorted(attendance_data.keys())
+        rows = []
+        for username, student in students.items():
+            row = {'Name': student['name'], 'Roll No': student.get('roll_no', '')}
+            for date in all_dates:
+                data = attendance_data[date]
+                row[date] = 'Present' if username in data.get('present', []) else 'Absent'
+            rows.append(row)
+        
+        df = pd.DataFrame(rows)
+        
+        export_path = 'attendance_export.xlsx'
+        sheet_name = subject if subject else 'General'
+        with pd.ExcelWriter(export_path, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+        
+        return send_file(
+            export_path,
+            as_attachment=True,
+            download_name=f"attendance_{subject or 'all'}_{datetime.now().strftime('%Y-%m-%d')}.xlsx",
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return redirect(url_for('admin_view_attendance', subject=subject, msg=f"Export failed: {e}"))
 
 @app.route('/admin/absentees')
 def admin_absentees():
@@ -879,13 +919,16 @@ def api_attendance_stats():
     attendance_data = get_attendance_data()
     dates = sorted(attendance_data.keys())
     present_counts = []
+    absent_counts = []
     
     for date in dates:
         present_counts.append(len(attendance_data[date].get('present', [])))
+        absent_counts.append(len(attendance_data[date].get('absent', [])))
     
     return jsonify({
         'dates': dates,
-        'present_counts': present_counts
+        'present_counts': present_counts,
+        'absent_counts': absent_counts
     })
 
 # ============================

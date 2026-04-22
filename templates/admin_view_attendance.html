@@ -11,7 +11,13 @@
         .navbar h1 { font-size: 24px; }
         .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
         .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
-        .filter-bar { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filter-bar { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+        .filter-section { display: flex; gap: 15px; align-items: center; }
+        .export-btns { display: flex; gap: 10px; }
+        .export-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: transform 0.2s; }
+        .export-btn:hover { transform: translateY(-2px); }
+        .export-btn.excel { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #333; }
+        .export-btn.sheets { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
         .filter-bar select {
             padding: 10px 40px 10px 15px;
             border: 2px solid #e0e0e0;
@@ -49,15 +55,22 @@
     
     <div class="container">
         <div class="filter-bar">
-            <label for="subjectFilter"><strong>Filter by Subject:</strong></label>
-            <select id="subjectFilter" onchange="window.location.href='/admin/view_attendance?subject=' + this.value">
-                <option value="">All Subjects</option>
-                {% for subject in subjects %}
-                <option value="{{ subject.code }}" {% if subject.code == selected_subject %}selected{% endif %}>
-                    {{ subject.name }}
-                </option>
-                {% endfor %}
-            </select>
+            <div class="filter-section">
+                <label for="subjectFilter"><strong>Filter by Subject:</strong></label>
+                <select id="subjectFilter" onchange="window.location.href='/admin/view_attendance?subject=' + this.value">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.code }}" {% if subject.code == selected_subject %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="export-btns">
+                <a href="/admin/export_attendance_excel?subject={{ selected_subject }}" class="export-btn excel">📥 Export to Excel</a>
+                <a href="{{ google_sheet_url }}" target="_blank" class="export-btn sheets" {% if not google_sheet_url %}style="opacity:0.5; pointer-events:none;"{% endif %}>📊 View in Google Sheets</a>
+            </div>
         </div>
         
         {% if attendance_data %}
