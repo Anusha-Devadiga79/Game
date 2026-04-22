@@ -401,6 +401,52 @@ def admin_add_subject():
     
     return render_template('admin_add_subject.html')
 
+@app.route('/admin/remove_subject', methods=['GET', 'POST'])
+def admin_remove_subject():
+    """Remove a subject"""
+    if session.get('user_type') != 'admin':
+        return redirect('/')
+
+    subjects = load_subjects()
+
+    if request.method == 'POST':
+        subject_code = request.form.get('subject_code')
+        if not subject_code:
+            return render_template('admin_remove_subject.html', subjects=subjects, error="Please select a subject")
+
+        subjects = [s for s in subjects if s['code'] != subject_code]
+        save_subjects(subjects)
+        return redirect(url_for('admin_subjects'))
+
+    return render_template('admin_remove_subject.html', subjects=subjects)
+
+@app.route('/admin/set_duration', methods=['GET', 'POST'])
+def admin_set_duration():
+    """Set attendance session duration"""
+    if session.get('user_type') != 'admin':
+        return redirect('/')
+
+    current_duration = 120
+    try:
+        with open('attendance_time.json', 'r') as f:
+            current_duration = json.load(f).get('duration', 120)
+    except:
+        pass
+
+    if request.method == 'POST':
+        duration = int(request.form.get('duration', 120))
+        try:
+            with open('attendance_time.json', 'r') as f:
+                data = json.load(f)
+        except:
+            data = {}
+        data['duration'] = duration
+        with open('attendance_time.json', 'w') as f:
+            json.dump(data, f)
+        return redirect(url_for('admin_dashboard', msg=f"Time limit set to {duration} seconds"))
+
+    return render_template('admin_set_duration.html', current_duration=current_duration)
+
 @app.route('/admin/schedule_attendance', methods=['GET', 'POST'])
 def admin_schedule_attendance():
     """Schedule attendance"""
@@ -412,35 +458,46 @@ def admin_schedule_attendance():
     if request.method == 'POST':
         time_value = request.form.get('time')
         subject = request.form.get('subject', '')
-        
+        duration = int(request.form.get('duration', 120))
+
         if time_value:
             with open('attendance_time.json', 'w') as f:
-                json.dump({'time': time_value, 'subject': subject}, f)
+                json.dump({'time': time_value, 'subject': subject, 'duration': duration}, f)
             return redirect(url_for('admin_dashboard', msg=f"Attendance scheduled for {time_value}"))
-    
+
     current_time = "15:00"
     current_subject = ""
+    current_duration = 120
     try:
         with open('attendance_time.json', 'r') as f:
             data = json.load(f)
             current_time = data.get('time', '15:00')
             current_subject = data.get('subject', '')
+            current_duration = data.get('duration', 120)
     except:
         pass
-    
-    return render_template('admin_schedule.html', 
+
+    return render_template('admin_schedule.html',
                          subjects=subjects,
                          current_time=current_time,
-                         current_subject=current_subject)
+                         current_subject=current_subject,
+                         current_duration=current_duration)
 
 @app.route('/admin/start_attendance')
 def admin_start_attendance():
     """Start manual attendance"""
     if session.get('user_type') != 'admin':
         return redirect('/')
-    
+
     subject = request.args.get('subject', '')
-    return render_template('admin_taking_attendance.html', subject=subject)
+    duration = 120
+    try:
+        with open('attendance_time.json', 'r') as f:
+            duration = int(json.load(f).get('duration', 120))
+    except:
+        pass
+
+    return render_template('admin_taking_attendance.html', subject=subject, duration=duration)
 
 # Global variable to store attendance session data
 attendance_session = {'marked': set(), 'subject': '', 'active': False}
@@ -478,6 +535,15 @@ def admin_video_feed():
         
         cap = cv2.VideoCapture(0)
         date_str = datetime.now().strftime('%Y-%m-%d')
+        
+        # Read duration from attendance_time.json
+        duration = 120
+        try:
+            with open('attendance_time.json', 'r') as f:
+                duration = int(json.load(f).get('duration', 120))
+        except:
+            pass
+        
         start_time = time.time()
         
         try:

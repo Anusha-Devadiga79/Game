@@ -63,7 +63,14 @@ if not cap.isOpened():
 date_str = datetime.now().strftime('%Y-%m-%d')
 marked_today = set()
 start_time = time.time()
-duration = 120  # 2 minutes
+
+# Read duration from attendance_time.json, fallback to 120
+duration = 120
+try:
+    with open('attendance_time.json', 'r') as f:
+        duration = int(json.load(f).get('duration', 120))
+except:
+    pass
 
 print(f"\nAttendance session started for {subject if subject else 'General'}")
 print("Press 'q' to quit early\n")

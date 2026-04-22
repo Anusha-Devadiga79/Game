@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Time Limit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 5px; background: rgba(255,255,255,0.2); }
+        .container { max-width: 600px; margin: 50px auto; padding: 0 20px; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .current-info { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 25px; }
+        .current-info h3 { color: #0066cc; margin-bottom: 8px; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: #667eea; }
+        .form-group small { color: #888; font-size: 13px; margin-top: 5px; display: block; }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #333; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .submit-btn:hover { opacity: 0.9; }
+        .presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .preset-btn { padding: 10px; background: #f0f0f0; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+        .preset-btn:hover { background: #667eea; color: white; border-color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>⏱ Set Time Limit</h1>
+        <a href="/admin/dashboard">← Back to Dashboard</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="current-info">
+                <h3>Current Time Limit</h3>
+                <p><strong>{{ current_duration }} seconds</strong> ({{ current_duration // 60 }} min {{ current_duration % 60 }} sec)</p>
+            </div>
+
+            <p style="margin-bottom:15px; color:#555;">Quick Presets:</p>
+            <div class="presets">
+                <button class="preset-btn" onclick="setDuration(60)">1 min</button>
+                <button class="preset-btn" onclick="setDuration(120)">2 min</button>
+                <button class="preset-btn" onclick="setDuration(180)">3 min</button>
+                <button class="preset-btn" onclick="setDuration(300)">5 min</button>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="duration">Custom Duration (seconds)</label>
+                    <input type="number" id="duration" name="duration" value="{{ current_duration }}" min="30" max="600" required>
+                    <small>Minimum: 30 seconds &nbsp;|&nbsp; Maximum: 600 seconds (10 min)</small>
+                </div>
+                <button type="submit" class="submit-btn">Save Time Limit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function setDuration(val) {
+            document.getElementById('duration').value = val;
+        }
+    </script>
+</body>
+</html>

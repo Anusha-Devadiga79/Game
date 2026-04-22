@@ -32,7 +32,10 @@
     <div class="container">
         <div class="header">
             <h2>All Subjects</h2>
-            <a href="/admin/add_subject" class="add-btn">➕ Add New Subject</a>
+            <div style="display:flex; gap:10px;">
+                <a href="/admin/add_subject" class="add-btn">➕ Add New Subject</a>
+                <a href="/admin/remove_subject" class="add-btn" style="background:#dc3545;">➖ Remove Subject</a>
+            </div>
         </div>
         
         {% if subjects %}

@@ -34,6 +34,7 @@
                 <h3>Current Schedule</h3>
                 <p><strong>Time:</strong> {{ current_time }}</p>
                 <p><strong>Subject:</strong> {{ current_subject if current_subject else 'Not set' }}</p>
+                <p><strong>Duration:</strong> {{ current_duration }} seconds</p>
             </div>
             
             <form method="POST">
@@ -52,6 +53,11 @@
                         </option>
                         {% endfor %}
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Attendance Duration (seconds)</label>
+                    <input type="number" id="duration" name="duration" value="{{ current_duration }}" min="30" max="600" required>
                 </div>
                 
                 <button type="submit" class="submit-btn">Set Schedule</button>
