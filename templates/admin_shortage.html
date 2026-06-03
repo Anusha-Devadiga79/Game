@@ -23,6 +23,14 @@
         .percentage.critical { background: #f8d7da; color: #721c24; }
         .percentage.warning { background: #fff3cd; color: #856404; }
         .empty-state { text-align: center; padding: 60px 20px; }
+        .shortage-filters { background: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .shortage-filters label { font-size: 13px; font-weight: 600; color: #666; }
+        .hidden-row { display: none; }
+        .filter-summary { font-size: 13px; color: #666; margin-left: auto; }
+        .num-input { padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background: #fff; width: 80px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+        .num-input:hover { border-color: #667eea; }
+        .num-input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
+        .input-hint { font-size: 11px; color: #999; }
     </style>
 </head>
 <body>
@@ -35,6 +43,18 @@
         <div class="warning-header">
             <h2>Students with Attendance Below 75%</h2>
             <p>These students need to improve their attendance to meet the minimum requirement</p>
+        </div>
+
+        <div class="shortage-filters">
+            <label>Filter by Classes:</label>
+            <input type="text" inputmode="numeric" class="num-input" id="classesInput" value="10" placeholder="e.g. 10" oninput="sanitize(this); applyFilters()" onkeydown="blockNonDigit(event)">
+            <span class="input-hint">classes</span>
+
+            <label style="margin-left: 10px;">Below:</label>
+            <input type="text" inputmode="numeric" class="num-input" id="pctInput" value="75" placeholder="e.g. 75" oninput="sanitize(this); applyFilters()" onkeydown="blockNonDigit(event)">
+            <span class="input-hint">%</span>
+
+            <span class="filter-summary" id="filterSummary"></span>
         </div>
         
         {% if shortage_list %}
@@ -51,11 +71,11 @@
                 </thead>
                 <tbody>
                     {% for student in shortage_list %}
-                    <tr>
+                    <tr data-present="{{ student.present }}" data-total="{{ student.total }}">
                         <td>{{ student.name }}</td>
                         <td>{{ student.roll_no }}</td>
-                        <td>{{ student.present }}</td>
-                        <td>{{ student.total }}</td>
+                        <td class="present-cell">{{ student.present }}</td>
+                        <td class="total-cell">{{ student.total }}</td>
                         <td>
                             <span class="percentage {% if student.percentage < 60 %}critical{% else %}warning{% endif %}">
                                 {{ student.percentage }}%
@@ -75,5 +95,59 @@
         </div>
         {% endif %}
     </div>
+
+<script>
+    function blockNonDigit(e) {
+        // Allow: backspace, delete, tab, arrows, home, end
+        const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'];
+        if (allowed.includes(e.key)) return;
+        // Block anything that's not a digit
+        if (!/^\d$/.test(e.key)) e.preventDefault();
+    }
+
+    function sanitize(input) {
+        input.value = input.value.replace(/\D/g, '');
+    }
+
+    function applyFilters() {
+        const classesVal = parseInt(document.getElementById('classesInput').value);
+        const threshold = parseFloat(document.getElementById('pctInput').value);
+
+        if (isNaN(threshold)) return;
+
+        const rows = document.querySelectorAll('tbody tr[data-present]');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const totalOrig = parseInt(row.dataset.total);
+            const presentOrig = parseInt(row.dataset.present);
+            let total = totalOrig, present = presentOrig;
+
+            if (!isNaN(classesVal) && classesVal > 0 && total > classesVal) {
+                present = Math.round((presentOrig / totalOrig) * classesVal);
+                total = classesVal;
+            }
+
+            const pct = total > 0 ? (present / total) * 100 : 0;
+
+            if (pct < threshold) {
+                row.classList.remove('hidden-row');
+                row.querySelector('.percentage').textContent = pct.toFixed(1) + '%';
+                row.querySelector('.present-cell').textContent = present;
+                row.querySelector('.total-cell').textContent = total;
+                row.querySelector('.percentage').className = `percentage ${pct < 60 ? 'critical' : 'warning'}`;
+                visible++;
+            } else {
+                row.classList.add('hidden-row');
+            }
+        });
+
+        const classesLabel = (!isNaN(classesVal) && classesVal > 0) ? `last ${classesVal} classes` : 'all classes';
+        document.getElementById('filterSummary').textContent =
+            `${visible} student${visible !== 1 ? 's' : ''} below ${threshold}% (${classesLabel})`;
+    }
+
+    applyFilters();
+</script>
 </body>
 </html>

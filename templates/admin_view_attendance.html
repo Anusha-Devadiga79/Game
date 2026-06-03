@@ -36,6 +36,11 @@
         }
         .filter-bar select:hover { border-color: #667eea; }
         .filter-bar select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
+        .date-input-group { display: flex; flex-direction: column; gap: 5px; }
+        .date-input-group label { font-size: 13px; font-weight: 600; color: #666; }
+        .date-input-group input[type="date"] { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background-color: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+        .date-input-group input[type="date"]:hover { border-color: #667eea; }
+        .date-input-group input[type="date"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
         .attendance-cards { display: grid; gap: 20px; }
         .date-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .date-card h3 { color: #667eea; margin-bottom: 15px; }
@@ -65,6 +70,14 @@
                     </option>
                     {% endfor %}
                 </select>
+                <div class="date-input-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" onchange="onStartChange()">
+                </div>
+                <div class="date-input-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" onchange="filterAttendance()">
+                </div>
             </div>
             
             <div class="export-btns">
@@ -115,5 +128,32 @@
         </div>
         {% endif %}
     </div>
+
+<script>
+    const allCards = document.querySelectorAll('.date-card');
+
+    function onStartChange() {
+        const startDate = document.getElementById('startDate').value;
+        const endInput = document.getElementById('endDate');
+        // End date cannot be before start date
+        endInput.min = startDate;
+        if (endInput.value && endInput.value < startDate) {
+            endInput.value = startDate;
+        }
+        filterAttendance();
+    }
+
+    function filterAttendance() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        allCards.forEach(card => {
+            const cardDate = card.querySelector('h3').textContent.split(' - ')[0].trim();
+            let show = true;
+            if (startDate && cardDate < startDate) show = false;
+            if (endDate && cardDate > endDate) show = false;
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+</script>
 </body>
 </html>
